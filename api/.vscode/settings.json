@@ -1,0 +1,24 @@
+{
+  "symbols.files.associations": {
+    "*.service.ts": "nest-service",
+    "*.controller.ts": "nest-controller",
+    "*.guard.ts": "nest-guard",
+    "*.module.ts": "nest"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.rulers": [
+    80
+  ],
+  "editor.formatOnSave": true,
+}

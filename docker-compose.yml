@@ -1,0 +1,82 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: finshow-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: finshow
+      MONGO_INITDB_ROOT_PASSWORD: finshow123
+      MONGO_INITDB_DATABASE: finshow
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - finshow-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Backend API (NestJS)
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: finshow-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      APP_DOMAIN: http://localhost:5173
+      APP_PORT: 4000
+      MONGODB_URI: mongodb://finshow:finshow123@mongodb:27017/finshow?authSource=admin
+      JWT_SECRET: super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN_DAYS: 7
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - finshow-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (React/Vite)
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:4000
+    container_name: finshow-front
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - finshow-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  finshow-network:
+    driver: bridge
